@@ -485,9 +485,9 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                 if (item == null) {
                     return null;
                 }
-                listener.startCurrentItem(item);
+//                listener.startCurrentItem(item);
                 TailCall tc = ((TailCallReturner) action).processLeavingTail(output, c2);
-                listener.endCurrentItem(item);
+//                listener.endCurrentItem(item);
                 return tc;
             } else {
                 Item item = iter.next();
@@ -510,7 +510,7 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                 while ((item = iter.next()) != null) {
                     if (controller.isTracing()) {
                         assert listener != null;
-                        listener.startCurrentItem(item);
+//                        listener.startCurrentItem(item);
                         listener.enter(this, Collections.emptyMap(), context);
                     }
                     if (separator != null) {
@@ -521,9 +521,9 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                         }
                     }
                     action.process(output, c2);
-                    if (controller.isTracing()) {
-                        listener.endCurrentItem(item);
-                    }
+//                    if (controller.isTracing()) {
+//                        listener.endCurrentItem(item);
+//                    }
                 }
             } else {
                 iter.forEachOrFail(item -> action.process(output, c2));
