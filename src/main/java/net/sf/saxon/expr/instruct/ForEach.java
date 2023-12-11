@@ -21,7 +21,12 @@ import net.sf.saxon.tree.util.Orphan;
 import net.sf.saxon.type.*;
 import net.sf.saxon.value.Cardinality;
 
+import java.io.FileReader;
+import java.io.LineNumberReader;
+import java.net.URL;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Handler for xsl:for-each elements in a stylesheet. The same class handles the "!" operator in XPath 3.0,
@@ -37,6 +42,7 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
     protected Operand separatorOp;
     protected Operand threadsOp;
     protected boolean isInstruction;
+    private String selectValue;
 
     /**
      * Create an xsl:for-each instruction
@@ -468,6 +474,32 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
 
     @Override
     public TailCall processLeavingTail(Outputter output, XPathContext context) throws XPathException {
+        try {
+            URL systemIdUrl = new URL(this.getLocation().getSystemId());
+
+            try (LineNumberReader reader = new LineNumberReader(new FileReader(systemIdUrl.getPath()))) {
+                String line;
+                StringBuilder xmlContent = new StringBuilder();
+
+                while ((line = reader.readLine()) != null) {
+                    if (reader.getLineNumber() == this.getLocation().getLineNumber()) {
+                        xmlContent.append(line);
+                        break;
+                    }
+                }
+                Pattern pattern = Pattern.compile("<xsl:for-each\\s+select=\"([^\"]+)\">");
+                Matcher matcher = pattern.matcher(xmlContent);
+                if (matcher.find()) {
+                    this.selectValue = matcher.group(1);
+                } else {
+                    throw new Exception("ERROR: Something went wrong when trying to get the select attribute of the for-each node at location Line #" + this.getLocation().getLineNumber() +
+                            ", Column #" + this.getLocation().getColumnNumber() + " in file: " + this.getLocation().getSystemId());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         Controller controller = context.getController();
         assert controller != null;
 
@@ -510,7 +542,7 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                 while ((item = iter.next()) != null) {
                     if (controller.isTracing()) {
                         assert listener != null;
-//                        listener.startCurrentItem(item);
+                        listener.startCurrentItem(item);
                         listener.enter(this, Collections.emptyMap(), context);
                     }
                     if (separator != null) {
@@ -521,9 +553,9 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                         }
                     }
                     action.process(output, c2);
-//                    if (controller.isTracing()) {
-//                        listener.endCurrentItem(item);
-//                    }
+                    if (controller.isTracing()) {
+                        listener.endCurrentItem(item);
+                    }
                 }
             } else {
                 iter.forEachOrFail(item -> action.process(output, c2));
@@ -531,6 +563,10 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
             pipe.setXPathContext(context);
         }
         return null;
+    }
+
+    public String getSelectValue(){
+        return this.selectValue;
     }
 
     protected NodeInfo makeSeparator(XPathContext context) throws XPathException {
