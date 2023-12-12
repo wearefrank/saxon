@@ -554,6 +554,7 @@ public class ForEach extends Instruction implements ContextMappingFunction, Cont
                     }
                     action.process(output, c2);
                     if (controller.isTracing()) {
+                        listener.leave(this);
                         listener.endCurrentItem(item);
                     }
                 }
