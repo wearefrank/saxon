@@ -266,9 +266,6 @@ public class Configuration implements SourceResolver, NotationSet {
 
     /*@Nullable*/
     public static InputStream locateResource(String filename, List<String> messages, List<ClassLoader> loaders) {
-
-        filename = "net/sf/saxon/data/" + filename;
-
         ClassLoader loader = null;
         try {
             loader = Thread.currentThread().getContextClassLoader();
