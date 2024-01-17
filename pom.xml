@@ -1,25 +1,88 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>org.wearefrank</groupId>
   <artifactId>Saxon-HE</artifactId>
+  <version>10.8.1</version>
   <packaging>jar</packaging>
+
+  <name>Saxon-HE</name>
+  <description>Altered version of Saxon-HE 10.8 for extra TraceListener functionalities</description>
+  <url>https://github.com/wearefrank/saxon</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
+  <prerequisites>
+    <maven>3.2.5</maven>
+  </prerequisites>
+
+  <organization>
+    <name>WeAreFrank!</name>
+    <url>https://wearefrank.nl/</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Mozilla Public License 2.0</name>
+      <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+      <distribution>manual</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+
+  </scm>
+
   <build>
-    <defaultGoal>clean install</defaultGoal>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>8</source>
-          <target>8</target>
-        </configuration>
-      </plugin>
-    </plugins>
+    <defaultGoal>install</defaultGoal>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.11.0</version>
+          <configuration>
+            <source>8</source>
+            <target>8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.3.0</version>
+          <configuration>
+            <archive>
+              <addMavenDescriptor>true</addMavenDescriptor>
+              <manifest>
+                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              </manifest>
+            </archive>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.0</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <phase>prepare-package</phase>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
-  <version>10.8</version>
-  <name>SaxonChanges</name>
-  <url>http://maven.apache.org</url>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -58,4 +121,61 @@
       <version>2.14.6</version>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>ibissource</id>
+      <distributionManagement>
+        <repository>
+          <id>ibissource</id>
+          <url>https://nexus.frankframework.org/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+          <id>ibissource</id>
+          <url>https://nexus.frankframework.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <site>
+          <id>www.ibissource.org</id>
+          <url>file:target/site-deploy</url>
+        </site>
+      </distributionManagement>
+      <repositories>
+        <repository>
+          <id>ibissource</id>
+          <url>https://nexus.frankframework.org/content/groups/public</url>
+        </repository>
+      </repositories>
+    </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <configuration>
+              <passphrase>${gpg.passphrase}</passphrase>
+              <gpgArguments>
+                <!-- This is necessary for gpg to not try to use the pinentry programs -->
+                <arg>--batch</arg>
+                <arg>--no-tty</arg>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
